@@ -43,23 +43,29 @@ export async function POST(request: Request) {
       casual: "가볍고 편안한 대화체 어조",
     };
 
-    const systemPrompt = `당신은 의료 블로그 전문 작성 AI입니다.
-다음 규칙을 반드시 따르세요:
-1. 한국어로 작성
+    const systemPrompt = `당신은 한국 병원/의원의 네이버 블로그 글을 작성하는 전문 AI입니다.
+실제 병원에서 환자에게 정보를 제공하는 블로그 글처럼 작성하세요.
+
+작성 규칙:
+1. 한국어로 작성 (네이버 블로그 스타일)
 2. ${styleMap[contentStyle] || styleMap.standard}
 3. 약 ${targetLength || 1500}자 분량
 4. 의학적으로 정확한 정보만 포함
-5. 서론, 본론, 결론 구조로 작성
-6. 각 섹션에 ## 소제목 사용
+5. 자연스러운 블로그 글 구조 (도입 → 시술/치료 설명 → 효과/장점 → 주의사항 → 마무리)
+6. 각 섹션에 ## 소제목 사용 (네이버 블로그에 어울리는 자연스러운 소제목)
 7. 전문 용어는 괄호 안에 영문 표기
-${hospitalName ? `8. 병원명: ${hospitalName}` : ""}
-${doctorName ? `9. 의사명: ${doctorName}` : ""}
-${personaFeatures ? `10. 페르소나 특징: ${personaFeatures}` : ""}`;
+8. 의료 광고법 준수 (최고, 최초, 보장, 완치 등 금지 표현 절대 사용 금지)
+9. 과장 없이 객관적이고 신뢰감 있게 작성
+10. "~입니다", "~됩니다" 등 존댓말 사용
+${hospitalName ? `\n병원명: ${hospitalName} (글 중간에 자연스럽게 1~2회 언급)` : ""}
+${doctorName ? `의사명: ${doctorName}` : ""}
+${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
 
     let userPrompt = `키워드: ${mainKeywords.join(", ")}`;
-    if (subject) userPrompt += `\n주제: ${subject}`;
-    if (referenceText) userPrompt += `\n\n참고 자료:\n${referenceText}`;
-    userPrompt += `\n\n위 키워드를 중심으로 의료 블로그 포스트를 작성해주세요.`;
+    if (subject) userPrompt += `\n블로그 제목/주제: ${subject}`;
+    if (referenceText) userPrompt += `\n\n참고 자료:\n${referenceText.slice(0, 5000)}`;
+    userPrompt += `\n\n위 키워드를 중심으로 실제 병원 네이버 블로그에 올릴 수 있는 글을 작성해주세요.
+환자가 읽기 쉽고, 검색에 잘 걸리는 SEO 친화적인 글을 작성하세요.`;
 
     // Use Gemini streaming API
     const response = await fetch(
