@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:blog-creator-umber.vercel.app)",
+      "WebSearch",
+      "WebFetch(domain:fal.ai)",
+      "WebFetch(domain:ai.google.dev)",
+      "WebFetch(domain:foxcg.com)"
+    ]
+  }
+}
