@@ -45,7 +45,9 @@ export async function POST(request: Request) {
 
     response.cookies.set(cookie);
     return response;
-  } catch {
-    return NextResponse.json({ error: "서버 오류가 발생했습니다" }, { status: 500 });
+  } catch (err) {
+    console.error("Login error:", err);
+    const message = err instanceof Error ? err.message : "서버 오류가 발생했습니다";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
