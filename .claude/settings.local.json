@@ -5,7 +5,8 @@
       "WebSearch",
       "WebFetch(domain:fal.ai)",
       "WebFetch(domain:ai.google.dev)",
-      "WebFetch(domain:foxcg.com)"
+      "WebFetch(domain:foxcg.com)",
+      "WebFetch(domain:hangeul.pstatic.net)"
     ]
   }
 }

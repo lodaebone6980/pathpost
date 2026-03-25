@@ -4,29 +4,30 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  LayoutDashboard,
-  PenSquare,
+  Home,
+  PenLine,
   FileText,
-  Search,
-  BookOpen,
-  Globe,
-  ImageIcon,
+  ImagePlus,
+  Eraser,
   Settings,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "대시보드", icon: LayoutDashboard },
-  { href: "/editor", label: "글쓰기", icon: PenSquare },
-  { href: "/blog", label: "블로그 관리", icon: FileText },
-  { href: "/search", label: "논문 검색", icon: Search },
-  { href: "/papers", label: "논문 관리", icon: BookOpen },
-  { href: "/crawl", label: "크롤링", icon: Globe },
-  { href: "/image", label: "이미지 생성", icon: ImageIcon },
+const MAIN_NAV = [
+  { href: "/dashboard", label: "대시보드", icon: Home },
+  { href: "/editor", label: "블로그 작성", icon: PenLine },
+  { href: "/blog", label: "내 포스트", icon: FileText },
+];
+
+const TOOL_NAV = [
+  { href: "/image", label: "이미지 생성", icon: ImagePlus },
+  { href: "/crawl", label: "크롤링", icon: Eraser },
+  { href: "/search", label: "논문 검색", icon: FileText },
 ];
 
 export function Sidebar() {
@@ -45,38 +46,72 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar">
+      {/* Logo */}
       <div className="flex h-14 items-center px-6 border-b">
-        <Link href="/dashboard" className="text-lg font-bold text-sidebar-foreground">
-          PathPost
+        <Link href="/dashboard" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+          <div className="rounded-lg bg-primary/10 p-1.5">
+            <Sparkles className="h-5 w-5 text-primary" />
+          </div>
+          <span className="text-lg font-bold text-sidebar-foreground">PathPost</span>
         </Link>
       </div>
+
       <ScrollArea className="flex-1 py-4">
-        <nav className="space-y-1 px-3">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                pathname === item.href
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        {/* Main Nav */}
+        <div className="px-3 mb-2">
+          <p className="px-3 mb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">메인</p>
+          <nav className="space-y-1">
+            {MAIN_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  pathname === item.href
+                    ? "bg-primary text-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <Separator className="my-3" />
+
+        {/* Tools Nav */}
+        <div className="px-3">
+          <p className="px-3 mb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">도구</p>
+          <nav className="space-y-1">
+            {TOOL_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  pathname === item.href
+                    ? "bg-primary text-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </ScrollArea>
+
       <Separator />
       <div className="p-3 space-y-1">
         <Link
           href="/settings"
           className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
             pathname === "/settings"
-              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              ? "bg-primary text-primary-foreground"
               : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
           )}
         >
