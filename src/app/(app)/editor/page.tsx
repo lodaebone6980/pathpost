@@ -556,6 +556,63 @@ export default function EditorPage() {
     toast.success("복사되었습니다");
   }
 
+  function downloadTxt() {
+    const blob = new Blob([generatedContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = (title || mainKeywords[0] || "blog") + ".txt"; a.click();
+    URL.revokeObjectURL(url);
+    toast.success("TXT 파일이 다운로드되었습니다");
+  }
+
+  function downloadMd() {
+    const mdContent = "# " + (title || mainKeywords[0] || "블로그") + "\n\n" + generatedContent;
+    const blob = new Blob([mdContent], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = (title || mainKeywords[0] || "blog") + ".md"; a.click();
+    URL.revokeObjectURL(url);
+    toast.success("MD 파일이 다운로드되었습니다");
+  }
+
+  async function handleFormat() {
+    if (!generatedContent) return;
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/blog/generate-stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hospitalName, doctorName, personaFeatures, mainKeywords,
+          subject: title || subject, referenceText: generatedContent,
+          contentStyle, targetLength, useWebSearch: false,
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "포매팅에 실패했습니다"); }
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "", fullContent = "";
+      setGeneratedContent("");
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n"); buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const rawData = line.slice(6).trim();
+            if (rawData === "[DONE]") continue;
+            try { const p = JSON.parse(rawData); if (p.text) { fullContent += p.text; setGeneratedContent(fullContent); } }
+            catch (e) { if (e instanceof SyntaxError) continue; throw e; }
+          }
+        }
+      }
+      setViolations(checkCompliance(fullContent));
+      toast.success("포매팅이 완료되었습니다!");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "포매팅에 실패했습니다"); }
+    finally { setGenerating(false); }
+  }
+
   const wordCount = generatedContent.length;
 
   return (
@@ -763,10 +820,17 @@ export default function EditorPage() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm">생성 결과</CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {wordCount > 0 && <Badge variant="outline" className="text-xs">{wordCount.toLocaleString()}자</Badge>}
-                  {generatedContent && (
-                    <Button variant="ghost" size="sm" onClick={copyContent}><Copy className="h-4 w-4" /></Button>
+                  {generatedContent && !generating && (
+                    <>
+                      <Button variant="ghost" size="sm" onClick={copyContent} title="복사"><Copy className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="sm" onClick={downloadTxt} title="TXT 다운로드"><span className="text-xs font-semibold">TXT</span></Button>
+                      <Button variant="ghost" size="sm" onClick={downloadMd} title="MD 다운로드"><span className="text-xs font-semibold">MD</span></Button>
+                      <Button variant="outline" size="sm" onClick={handleFormat} disabled={generating}>
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" />포매팅
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
