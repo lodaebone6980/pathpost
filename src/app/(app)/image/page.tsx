@@ -37,16 +37,16 @@ const TEXT_EXAMPLES = [
 ];
 
 export default function ImagePage() {
-  const [prompt, setPrompt] = useState("");
-  const [style, setStyle] = useState("k-beauty");
-  const [ratio, setRatio] = useState("4:5");
-  const [inputTab, setInputTab] = useState<"text" | "image">("text");
-  const [referenceFile, setReferenceFile] = useState<File | null>(null);
-  const [referencePreview, setReferencePreview] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const [prompt, setPrompt] = useState<string>("");
+  const [style, setStyle] = useState<string>("k-beauty");
+  const [ratio, setRatio] = useState<string>("4:5");
+  const [inputMode, setInputMode] = useState<string>("text");
+  const [referenceFile, setReferenceFile] = useState<File | undefined>(undefined);
+  const [referencePreview, setReferencePreview] = useState<string>("");
+  const [generating, setGenerating] = useState<boolean>(false);
   const [images, setImages] = useState<GeneratedImage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dailyUsed, setDailyUsed] = useState(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [dailyUsed, setDailyUsed] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -68,10 +68,11 @@ export default function ImagePage() {
   }, []);
 
   function handleReferenceFile(file: File) {
-    if (!["image/jpeg","image/png","image/webp","image/heic"].includes(file.type)) {
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+    if (!allowed.includes(file.type)) {
       toast.error("JPEG, PNG, WebP, HEIC 파일만 지원합니다"); return;
     }
-    if (file.size > 7*1024*1024) { toast.error("파일 크기는 7MB 이하여야 합니다"); return; }
+    if (file.size > 7 * 1024 * 1024) { toast.error("파일 크기는 7MB 이하여야 합니다"); return; }
     setReferenceFile(file);
     setReferencePreview(URL.createObjectURL(file));
   }
@@ -82,23 +83,28 @@ export default function ImagePage() {
     setGenerating(true);
     try {
       let res: Response;
-      if (inputTab === "image" && referenceFile) {
+      if (inputMode === "image" && referenceFile) {
         const formData = new FormData();
-        formData.append("prompt", prompt); formData.append("style", style); formData.append("ratio", ratio);
+        formData.append("prompt", prompt);
+        formData.append("style", style);
+        formData.append("ratio", ratio);
         formData.append("referenceImage", referenceFile);
         res = await fetch("/api/image/generate", { method: "POST", body: formData });
       } else {
         res = await fetch("/api/image/generate", {
-          method: "POST", headers: { "Content-Type": "application/json" },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, style, ratio }),
         });
       }
       if (!res.ok) { const data = await res.json(); throw new Error(data.error); }
       const data = await res.json();
-      setImages(prev => [data.image, ...prev]);
-      setDailyUsed(prev => prev + 1);
+      setImages((prev) => [data.image, ...prev]);
+      setDailyUsed((prev) => prev + 1);
       toast.success("이미지가 생성되었습니다!");
-      setPrompt(""); setReferenceFile(null as File | null); setReferencePreview(null as string | null);
+      setPrompt("");
+      setReferenceFile(undefined);
+      setReferencePreview("");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "이미지 생성에 실패했습니다");
     } finally { setGenerating(false); }
@@ -106,7 +112,10 @@ export default function ImagePage() {
 
   function handleDownload(url: string) {
     const a = document.createElement("a");
-    a.href = url; a.download = `pathpost-image-${Date.now()}.webp`; a.target = "_blank"; a.click();
+    a.href = url;
+    a.download = `pathpost-image-${Date.now()}.webp`;
+    a.target = "_blank";
+    a.click();
     toast.success("다운로드를 시작합니다");
   }
 
@@ -127,10 +136,15 @@ export default function ImagePage() {
               <p className="text-sm font-medium mb-3">스타일 선택</p>
               <div className="grid grid-cols-2 gap-3">
                 {STYLE_OPTIONS.map((s) => (
-                  <button key={s.id} onClick={() => setStyle(s.id)}
-                    className={`flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-colors ${
-                      style === s.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
-                    }`}>
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setStyle(s.id)}
+                    className={[
+                      "flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-colors",
+                      style === s.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40",
+                    ].join(" ")}
+                  >
                     <span className="text-xl">{s.icon}</span>
                     <div>
                       <p className="text-sm font-semibold">{s.label}</p>
@@ -143,43 +157,66 @@ export default function ImagePage() {
 
             <div>
               <p className="text-sm font-medium mb-3">입력 방식</p>
-              <Tabs value={inputTab} onValueChange={(v) => setInputTab(v as "text" | "image")}>
+              <Tabs value={inputMode} onValueChange={setInputMode}>
                 <TabsList className="w-full grid grid-cols-2">
                   <TabsTrigger value="text">텍스트 입력</TabsTrigger>
                   <TabsTrigger value="image">이미지 업로드</TabsTrigger>
                 </TabsList>
                 <TabsContent value="text" className="mt-4 space-y-3">
-                  <Textarea placeholder="원하는 이미지를 자연스럽게 설명해주세요..." value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)} className="min-h-[100px] resize-none" />
+                  <Textarea
+                    placeholder="원하는 이미지를 자연스럽게 설명해주세요..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="min-h-[100px] resize-none"
+                  />
                   <div className="flex flex-wrap gap-2">
                     {TEXT_EXAMPLES.map((ex) => (
-                      <button key={ex} onClick={() => setPrompt(ex)}
-                        className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors">{ex}</button>
+                      <button
+                        key={ex}
+                        type="button"
+                        onClick={() => setPrompt(ex)}
+                        className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                      >
+                        {ex}
+                      </button>
                     ))}
                   </div>
                 </TabsContent>
                 <TabsContent value="image" className="mt-4 space-y-3">
-                  <div onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                  >
                     {referencePreview ? (
                       <img src={referencePreview} alt="reference" className="w-full object-contain max-h-48 rounded-md" />
                     ) : (
-                      <><Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-                      <p className="text-sm text-muted-foreground">클릭하거나 파일을 드래그하여 업로드</p>
-                      <p className="text-xs text-muted-foreground/70 mt-1">JPEG, PNG, WebP, HEIC (최대 7MB)</p></>
+                      <>
+                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">클릭하거나 파일을 드래그하여 업로드</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">JPEG, PNG, WebP, HEIC (최대 7MB)</p>
+                      </>
                     )}
-                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic"
-                      className="hidden" onChange={(e) => e.target.files?.[0] && handleReferenceFile(e.target.files[0])} />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/heic"
+                      className="hidden"
+                      onChange={(e) => { if (e.target.files?.[0]) handleReferenceFile(e.target.files[0]); }}
+                    />
                   </div>
-                  <Textarea placeholder="레퍼런스 이미지를 기반으로 원하는 추가 설명을 입력하세요..." value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)} className="min-h-[80px] resize-none" />
+                  <Textarea
+                    placeholder="레퍼런스 이미지를 기반으로 원하는 추가 설명을 입력하세요..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="min-h-[80px] resize-none"
+                  />
                 </TabsContent>
               </Tabs>
             </div>
 
             <div>
               <p className="text-sm font-medium mb-2">비율</p>
-              <Select value={ratio} onValueChange={(v: string) => setRatio(v)}>
+              <Select value={ratio} onValueChange={setRatio}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {RATIO_OPTIONS.map((r) => (
@@ -189,9 +226,14 @@ export default function ImagePage() {
               </Select>
             </div>
 
-            <Button className="w-full" size="lg" onClick={handleGenerate}
-              disabled={generating || !prompt.trim() || dailyUsed >= 15}>
-              {generating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />생성 중...</>
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleGenerate}
+              disabled={generating || !prompt.trim() || dailyUsed >= 15}
+            >
+              {generating
+                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />생성 중...</>
                 : <><Sparkles className="h-4 w-4 mr-2" />이미지 생성</>}
             </Button>
           </CardContent>
@@ -203,7 +245,9 @@ export default function ImagePage() {
           </h3>
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[1,2,3].map(i => <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />)}
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
+              ))}
             </div>
           ) : images.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
@@ -212,15 +256,24 @@ export default function ImagePage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {images.map(img => (
+              {images.map((img) => (
                 <div key={img.id} className="group relative rounded-lg overflow-hidden border bg-muted aspect-square">
-                  <Image src={img.public_url} alt={img.prompt} fill
+                  <Image
+                    src={img.public_url}
+                    alt={img.prompt}
+                    fill
                     className="object-cover transition-transform group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, 33vw" />
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                  />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-end p-3 opacity-0 group-hover:opacity-100">
                     <div className="flex gap-2 w-full">
                       <p className="text-white text-xs flex-1 line-clamp-2">{img.prompt}</p>
-                      <Button size="sm" variant="secondary" className="shrink-0" onClick={() => handleDownload(img.public_url)}>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="shrink-0"
+                        onClick={() => handleDownload(img.public_url)}
+                      >
                         <Download className="h-3.5 w-3.5" />
                       </Button>
                     </div>
