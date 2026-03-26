@@ -4,14 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  Home,
-  PenLine,
-  FileText,
-  ImagePlus,
-  Eraser,
-  Settings,
-  LogOut,
-  Sparkles,
+  Home, PenLine, FileText, ImagePlus, Eraser, Settings, LogOut, Sparkles, Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,6 +19,7 @@ const MAIN_NAV = [
 
 const TOOL_NAV = [
   { href: "/image", label: "이미지 생성", icon: ImagePlus },
+  { href: "/image-wash", label: "이미지 워싱", icon: Wand2 },
   { href: "/crawl", label: "크롤링", icon: Eraser },
   { href: "/search", label: "논문 검색", icon: FileText },
 ];
@@ -46,7 +40,6 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar">
-      {/* Logo */}
       <div className="flex h-14 items-center px-6 border-b">
         <Link href="/dashboard" className="flex items-center gap-2 transition-opacity hover:opacity-80">
           <div className="rounded-lg bg-primary/10 p-1.5">
@@ -57,7 +50,6 @@ export function Sidebar() {
       </div>
 
       <ScrollArea className="flex-1 py-4">
-        {/* Main Nav */}
         <div className="px-3 mb-2">
           <p className="px-3 mb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">메인</p>
           <nav className="space-y-1">
@@ -81,9 +73,8 @@ export function Sidebar() {
 
         <Separator className="my-3" />
 
-        {/* Tools Nav */}
         <div className="px-3">
-          <p className="px-3 mb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">도구</p>
+          <p className="px-3 mb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">이미지 도구</p>
           <nav className="space-y-1">
             {TOOL_NAV.map((item) => (
               <Link
