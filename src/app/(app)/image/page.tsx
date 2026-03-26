@@ -1,3 +1,4 @@
+// v2 - null removed
 "use client";
 
 import { useState, useEffect, useRef } from "react";
