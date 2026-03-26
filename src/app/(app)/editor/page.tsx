@@ -22,7 +22,7 @@ import {
 import type { Paper } from "@/types/paper";
 import { checkCompliance, type ComplianceViolation } from "@/lib/compliance";
 
-// ─── PubMed Panel ────────────────────────────────────────
+// âââ PubMed Panel ââââââââââââââââââââââââââââââââââââââââ
 function PubMedPanel({
   keywords,
   onSelectPaper,
@@ -56,7 +56,7 @@ function PubMedPanel({
 
   async function handleRecommend() {
     if (keywords.length === 0) {
-      toast.error("키워드를 먼저 입력해주세요");
+      toast.error("í¤ìëë¥¼ ë¨¼ì  ìë ¥í´ì£¼ì¸ì");
       return;
     }
     setLoading(true);
@@ -91,7 +91,7 @@ function PubMedPanel({
     <div className="space-y-3">
       <div className="flex gap-2">
         <Input
-          placeholder="논문 검색..."
+          placeholder="ë¼ë¬¸ ê²ì..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -102,7 +102,7 @@ function PubMedPanel({
         </Button>
       </div>
       <Button size="sm" variant="ghost" className="w-full text-xs" onClick={handleRecommend} disabled={loading}>
-        <Lightbulb className="h-3.5 w-3.5 mr-1" /> 키워드 기반 추천
+        <Lightbulb className="h-3.5 w-3.5 mr-1" /> í¤ìë ê¸°ë° ì¶ì²
       </Button>
       {loading && <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
       <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -116,7 +116,7 @@ function PubMedPanel({
           >
             <p className="font-medium line-clamp-2 leading-snug">{paper.title}</p>
             <p className="text-muted-foreground mt-1">
-              {paper.authors.slice(0, 2).join(", ")} · {paper.journal} · {paper.year}
+              {paper.authors.slice(0, 2).join(", ")} Â· {paper.journal} Â· {paper.year}
             </p>
             <div className="flex items-center gap-1 mt-1">
               <Badge variant="outline" className="text-[10px] px-1 py-0">PMID: {paper.pmid}</Badge>
@@ -129,7 +129,7 @@ function PubMedPanel({
   );
 }
 
-// ─── YouTube Summary Dialog ──────────────────────────────
+// âââ YouTube Summary Dialog ââââââââââââââââââââââââââââââ
 function YouTubeSummaryDialog({ onInsert }: { onInsert: (text: string) => void }) {
   const [url, setUrl] = useState("");
   const [summary, setSummary] = useState("");
@@ -170,9 +170,9 @@ function YouTubeSummaryDialog({ onInsert }: { onInsert: (text: string) => void }
           }
         }
       }
-      toast.success("요약 완료!");
+      toast.success("ìì½ ìë£!");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "요약에 실패했습니다");
+      toast.error(err instanceof Error ? err.message : "ìì½ì ì¤í¨íìµëë¤");
     } finally {
       setLoading(false);
     }
@@ -180,23 +180,21 @@ function YouTubeSummaryDialog({ onInsert }: { onInsert: (text: string) => void }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button type="button" variant="outline" size="sm" className="gap-1.5">
+      <DialogTrigger className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 text-sm font-medium">
           <Video className="h-3.5 w-3.5 text-red-500" />
-          YouTube 영상 요약
-        </Button>
+          YouTube ìì ìì½
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Video className="h-5 w-5 text-red-500" /> YouTube 영상 요약
+            <Video className="h-5 w-5 text-red-500" /> YouTube ìì ìì½
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="flex gap-2">
             <Input placeholder="https://www.youtube.com/watch?v=..." value={url} onChange={(e) => setUrl(e.target.value)} />
             <Button onClick={handleSummarize} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "요약"}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "ìì½"}
             </Button>
           </div>
           {summary && (
@@ -205,8 +203,8 @@ function YouTubeSummaryDialog({ onInsert }: { onInsert: (text: string) => void }
             </div>
           )}
           {summary && (
-            <Button className="w-full" onClick={() => { onInsert(summary); setOpen(false); toast.success("참고 자료에 추가되었습니다"); }}>
-              참고 자료에 삽입
+            <Button className="w-full" onClick={() => { onInsert(summary); setOpen(false); toast.success("ì°¸ê³  ìë£ì ì¶ê°ëììµëë¤"); }}>
+              ì°¸ê³  ìë£ì ì½ì
             </Button>
           )}
         </div>
@@ -215,7 +213,7 @@ function YouTubeSummaryDialog({ onInsert }: { onInsert: (text: string) => void }
   );
 }
 
-// ─── Main Editor Page ──────────────────────────────────────
+// âââ Main Editor Page ââââââââââââââââââââââââââââââââââââââ
 export default function EditorPage() {
   const router = useRouter();
 
@@ -245,13 +243,13 @@ export default function EditorPage() {
   const abortRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ─── Keywords ────────────────────────────────────────────
+  // âââ Keywords ââââââââââââââââââââââââââââââââââââââââââââ
   function addKeyword(value?: string) {
     const raw = value || keywordInput;
     const keywords = raw.split(",").map((k) => k.trim()).filter(Boolean);
     for (const kw of keywords) {
       if (mainKeywords.length >= 5) {
-        toast.error("키워드는 최대 5개까지 입력할 수 있습니다");
+        toast.error("í¤ìëë ìµë 5ê°ê¹ì§ ìë ¥í  ì ììµëë¤");
         break;
       }
       if (!mainKeywords.includes(kw)) {
@@ -265,10 +263,10 @@ export default function EditorPage() {
     setMainKeywords(mainKeywords.filter((k) => k !== kw));
   }
 
-  // ─── Subject Suggestions ──────────────────────────────────
+  // âââ Subject Suggestions ââââââââââââââââââââââââââââââââââ
   async function suggestSubjects() {
     if (mainKeywords.length === 0) {
-      toast.error("키워드를 먼저 입력해주세요");
+      toast.error("í¤ìëë¥¼ ë¨¼ì  ìë ¥í´ì£¼ì¸ì");
       return;
     }
     setSuggestingSubjects(true);
@@ -283,41 +281,41 @@ export default function EditorPage() {
         setSuggestedSubjects(data.subjects || []);
       }
     } catch {
-      toast.error("주제 추천에 실패했습니다");
+      toast.error("ì£¼ì  ì¶ì²ì ì¤í¨íìµëë¤");
     } finally {
       setSuggestingSubjects(false);
     }
   }
 
-  // ─── File Upload ──────────────────────────────────────────
+  // âââ File Upload ââââââââââââââââââââââââââââââââââââââââââ
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("파일 크기는 10MB 이하만 가능합니다");
+      toast.error("íì¼ í¬ê¸°ë 10MB ì´íë§ ê°ë¥í©ëë¤");
       return;
     }
     if (!file.name.match(/\.(txt|pdf|docx)$/i)) {
-      toast.error("txt, pdf, docx 파일만 지원합니다");
+      toast.error("txt, pdf, docx íì¼ë§ ì§ìí©ëë¤");
       return;
     }
     if (file.name.endsWith(".txt")) {
       const reader = new FileReader();
       reader.onload = (ev) => {
         setReferenceText(ev.target?.result as string);
-        toast.success("파일 내용이 참고 텍스트로 입력되었습니다");
+        toast.success("íì¼ ë´ì©ì´ ì°¸ê³  íì¤í¸ë¡ ìë ¥ëììµëë¤");
       };
       reader.readAsText(file);
     } else {
-      toast.info("PDF/DOCX 파일은 텍스트 추출 후 붙여넣어 주세요");
+      toast.info("PDF/DOCX íì¼ì íì¤í¸ ì¶ì¶ í ë¶ì¬ë£ì´ ì£¼ì¸ì");
     }
     e.target.value = "";
   }
 
-  // ─── SSE Generation ──────────────────────────────────────
+  // âââ SSE Generation ââââââââââââââââââââââââââââââââââââââ
   const handleGenerate = useCallback(async () => {
     if (mainKeywords.length === 0) {
-      toast.error("키워드를 최소 1개 이상 입력해주세요");
+      toast.error("í¤ìëë¥¼ ìµì 1ê° ì´ì ìë ¥í´ì£¼ì¸ì");
       return;
     }
     setGenerating(true);
@@ -341,7 +339,7 @@ export default function EditorPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "생성에 실패했습니다");
+        throw new Error(data.error || "ìì±ì ì¤í¨íìµëë¤");
       }
 
       const reader = res.body!.getReader();
@@ -378,15 +376,15 @@ export default function EditorPage() {
       const compViolations = checkCompliance(fullContent);
       setViolations(compViolations);
       if (compViolations.length > 0) {
-        toast.warning(`${compViolations.length}건의 컴플라이언스 위반이 발견되었습니다`);
+        toast.warning(`${compViolations.length}ê±´ì ì»´íë¼ì´ì¸ì¤ ìë°ì´ ë°ê²¬ëììµëë¤`);
       } else {
-        toast.success("블로그 생성이 완료되었습니다!");
+        toast.success("ë¸ë¡ê·¸ ìì±ì´ ìë£ëììµëë¤!");
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        toast.info("생성이 중단되었습니다");
+        toast.info("ìì±ì´ ì¤ë¨ëììµëë¤");
       } else {
-        toast.error(err instanceof Error ? err.message : "생성에 실패했습니다");
+        toast.error(err instanceof Error ? err.message : "ìì±ì ì¤í¨íìµëë¤");
       }
     } finally {
       setGenerating(false);
@@ -398,10 +396,10 @@ export default function EditorPage() {
     abortRef.current?.abort();
   }
 
-  // ─── Save ─────────────────────────────────────────────────
+  // âââ Save âââââââââââââââââââââââââââââââââââââââââââââââââ
   async function handleSave(status: "draft" | "published") {
     if (!title.trim() || !generatedContent.trim()) {
-      toast.error("제목과 내용을 입력해주세요");
+      toast.error("ì ëª©ê³¼ ë´ì©ì ìë ¥í´ì£¼ì¸ì");
       return;
     }
     setSaving(true);
@@ -421,10 +419,10 @@ export default function EditorPage() {
         const data = await res.json();
         throw new Error(data.error);
       }
-      toast.success(status === "published" ? "발행되었습니다!" : "임시저장 되었습니다");
+      toast.success(status === "published" ? "ë°íëììµëë¤!" : "ììì ì¥ ëììµëë¤");
       router.push("/blog");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "저장에 실패했습니다");
+      toast.error(err instanceof Error ? err.message : "ì ì¥ì ì¤í¨íìµëë¤");
     } finally {
       setSaving(false);
     }
@@ -432,7 +430,7 @@ export default function EditorPage() {
 
   function copyContent() {
     navigator.clipboard.writeText(generatedContent);
-    toast.success("복사되었습니다");
+    toast.success("ë³µì¬ëììµëë¤");
   }
 
   function downloadTxt() {
@@ -443,11 +441,11 @@ export default function EditorPage() {
     a.download = (title || mainKeywords[0] || "blog") + ".txt";
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("TXT 파일이 다운로드되었습니다");
+    toast.success("TXT íì¼ì´ ë¤ì´ë¡ëëììµëë¤");
   }
 
   function downloadMd() {
-    const mdContent = "# " + (title || mainKeywords[0] || "블로그") + "\n\n" + generatedContent;
+    const mdContent = "# " + (title || mainKeywords[0] || "ë¸ë¡ê·¸") + "\n\n" + generatedContent;
     const blob = new Blob([mdContent], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -455,56 +453,56 @@ export default function EditorPage() {
     a.download = (title || mainKeywords[0] || "blog") + ".md";
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("MD 파일이 다운로드되었습니다");
+    toast.success("MD íì¼ì´ ë¤ì´ë¡ëëììµëë¤");
   }
 
   const wordCount = generatedContent.length;
 
-  // ─── Form Content (shared between desktop & mobile) ───────
+  // âââ Form Content (shared between desktop & mobile) âââââââ
   const formContent = (
     <form onSubmit={(e) => { e.preventDefault(); generating ? handleStop() : handleGenerate(); }} className="space-y-6">
-      {/* Card 1: 기본 정보 */}
+      {/* Card 1: ê¸°ë³¸ ì ë³´ */}
       <Card>
         <CardHeader>
-          <CardTitle>기본 정보</CardTitle>
-          <CardDescription>병원과 의사 정보를 입력하세요</CardDescription>
+          <CardTitle>ê¸°ë³¸ ì ë³´</CardTitle>
+          <CardDescription>ë³ìê³¼ ìì¬ ì ë³´ë¥¼ ìë ¥íì¸ì</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="hospitalName">병원명 <span className="text-red-500">*</span></Label>
-            <Input id="hospitalName" placeholder="예: 연세피부과의원" value={hospitalName} onChange={(e) => setHospitalName(e.target.value)} />
+            <Label htmlFor="hospitalName">ë³ìëª <span className="text-red-500">*</span></Label>
+            <Input id="hospitalName" placeholder="ì: ì°ì¸í¼ë¶ê³¼ìì" value={hospitalName} onChange={(e) => setHospitalName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="doctorName">의사명 <span className="text-muted-foreground text-xs">(선택사항)</span></Label>
-            <Input id="doctorName" placeholder="예: 김연세 (입력 시 글에 포함됩니다)" value={doctorName} onChange={(e) => setDoctorName(e.target.value)} />
+            <Label htmlFor="doctorName">ìì¬ëª <span className="text-muted-foreground text-xs">(ì íì¬í­)</span></Label>
+            <Input id="doctorName" placeholder="ì: ê¹ì°ì¸ (ìë ¥ ì ê¸ì í¬í¨ë©ëë¤)" value={doctorName} onChange={(e) => setDoctorName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="persona">특징 (페르소나) <span className="text-muted-foreground text-xs">(선택사항)</span></Label>
+            <Label htmlFor="persona">í¹ì§ (íë¥´ìë) <span className="text-muted-foreground text-xs">(ì íì¬í­)</span></Label>
             <Textarea
               id="persona"
-              placeholder="예: 15년 경력 의료진, 레이저 및 리프팅 시술 경험 풍부, 편안하고 친근한 상담 스타일"
+              placeholder="ì: 15ë ê²½ë ¥ ìë£ì§, ë ì´ì  ë° ë¦¬íí ìì  ê²½í íë¶, í¸ìíê³  ì¹ê·¼í ìë´ ì¤íì¼"
               value={personaFeatures}
               onChange={(e) => setPersonaFeatures(e.target.value.slice(0, 500))}
               rows={3}
             />
-            <p className="text-xs text-muted-foreground">병원/의료진의 특징, 시술 경험, 경력, 선호하는 말투 등 ({personaFeatures.length}/500)</p>
+            <p className="text-xs text-muted-foreground">ë³ì/ìë£ì§ì í¹ì§, ìì  ê²½í, ê²½ë ¥, ì í¸íë ë§í¬ ë± ({personaFeatures.length}/500)</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Card 2: 키워드 설정 */}
+      {/* Card 2: í¤ìë ì¤ì  */}
       <Card>
         <CardHeader>
-          <CardTitle>키워드 설정</CardTitle>
-          <CardDescription>블로그의 주요 키워드와 전체 주제를 입력하세요</CardDescription>
+          <CardTitle>í¤ìë ì¤ì </CardTitle>
+          <CardDescription>ë¸ë¡ê·¸ì ì£¼ì í¤ìëì ì ì²´ ì£¼ì ë¥¼ ìë ¥íì¸ì</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="keywords">주요 키워드 <span className="text-red-500">*</span></Label>
+            <Label htmlFor="keywords">ì£¼ì í¤ìë <span className="text-red-500">*</span></Label>
             <div className="flex gap-2">
               <Input
                 id="keywords"
-                placeholder="주요 키워드 입력 (예: 울쎄라, HIFU)"
+                placeholder="ì£¼ì í¤ìë ìë ¥ (ì: ì¸ìë¼, HIFU)"
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -518,7 +516,7 @@ export default function EditorPage() {
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">{mainKeywords.length}/5 태그 • Enter 또는 쉼표(,)로 추가</p>
+            <p className="text-xs text-muted-foreground">{mainKeywords.length}/5 íê·¸ â¢ Enter ëë ì¼í(,)ë¡ ì¶ê°</p>
             {mainKeywords.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {mainKeywords.map((kw) => (
@@ -534,14 +532,14 @@ export default function EditorPage() {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="subject">전체 주제 <span className="text-muted-foreground text-xs">(선택사항)</span></Label>
+              <Label htmlFor="subject">ì ì²´ ì£¼ì  <span className="text-muted-foreground text-xs">(ì íì¬í­)</span></Label>
               <Button type="button" size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={suggestSubjects} disabled={suggestingSubjects}>
                 {suggestingSubjects ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
-                AI 주제 추천
+                AI ì£¼ì  ì¶ì²
               </Button>
             </div>
-            <Input id="subject" placeholder="예: 리프팅 시술의 종류와 선택 기준 (전체적인 글의 방향성)" value={subject} onChange={(e) => setSubject(e.target.value)} />
-            <p className="text-xs text-muted-foreground">글 전체를 관통하는 주제나 논지를 입력하면 더 일관된 내용이 생성됩니다</p>
+            <Input id="subject" placeholder="ì: ë¦¬íí ìì ì ì¢ë¥ì ì í ê¸°ì¤ (ì ì²´ì ì¸ ê¸ì ë°©í¥ì±)" value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <p className="text-xs text-muted-foreground">ê¸ ì ì²´ë¥¼ ê´íµíë ì£¼ì ë ë¼ì§ë¥¼ ìë ¥íë©´ ë ì¼ê´ë ë´ì©ì´ ìì±ë©ëë¤</p>
             {suggestedSubjects.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {suggestedSubjects.map((s, i) => (
@@ -555,25 +553,25 @@ export default function EditorPage() {
         </CardContent>
       </Card>
 
-      {/* Card 3: 참고 텍스트 */}
+      {/* Card 3: ì°¸ê³  íì¤í¸ */}
       <Card>
         <CardHeader>
-          <CardTitle>참고 텍스트</CardTitle>
-          <CardDescription>블로그 작성을 위한 참고 자료를 입력하세요</CardDescription>
+          <CardTitle>ì°¸ê³  íì¤í¸</CardTitle>
+          <CardDescription>ë¸ë¡ê·¸ ìì±ì ìí ì°¸ê³  ìë£ë¥¼ ìë ¥íì¸ì</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div className="space-y-0.5">
               <Label className="text-sm font-medium flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5" /> 웹 검색으로 최신 정보 추가
+                <Globe className="h-3.5 w-3.5" /> ì¹ ê²ìì¼ë¡ ìµì  ì ë³´ ì¶ê°
               </Label>
-              <p className="text-xs text-muted-foreground">메인 키워드를 기반으로 최신 의학 정보를 자동 검색합니다.</p>
+              <p className="text-xs text-muted-foreground">ë©ì¸ í¤ìëë¥¼ ê¸°ë°ì¼ë¡ ìµì  ìí ì ë³´ë¥¼ ìë ê²ìí©ëë¤.</p>
             </div>
             <Switch checked={useWebSearch} onCheckedChange={setUseWebSearch} />
           </div>
           <YouTubeSummaryDialog onInsert={(text) => setReferenceText((prev) => prev + (prev ? "\n\n---\n\n" : "") + text)} />
           <div className="space-y-2">
-            <Label htmlFor="referenceText">참고 텍스트</Label>
+            <Label htmlFor="referenceText">ì°¸ê³  íì¤í¸</Label>
             <div className="relative border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add("border-primary"); }}
@@ -582,122 +580,120 @@ export default function EditorPage() {
             >
               <input ref={fileInputRef} type="file" accept=".txt,.pdf,.docx" onChange={handleFileUpload} className="hidden" />
               <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">파일을 드래그하거나 클릭하여 업로드</p>
-              <p className="text-xs text-muted-foreground mt-1">.docx, .pdf, .txt 파일 지원 (최대 10MB)</p>
+              <p className="text-sm text-muted-foreground">íì¼ì ëëê·¸íê±°ë í´ë¦­íì¬ ìë¡ë</p>
+              <p className="text-xs text-muted-foreground mt-1">.docx, .pdf, .txt íì¼ ì§ì (ìµë 10MB)</p>
             </div>
-            <Textarea id="referenceText" placeholder="블로그 작성을 위한 참고 텍스트를 입력하거나 파일을 업로드하세요..." value={referenceText} onChange={(e) => setReferenceText(e.target.value)} rows={4} />
+            <Textarea id="referenceText" placeholder="ë¸ë¡ê·¸ ìì±ì ìí ì°¸ê³  íì¤í¸ë¥¼ ìë ¥íê±°ë íì¼ì ìë¡ëíì¸ì..." value={referenceText} onChange={(e) => setReferenceText(e.target.value)} rows={4} />
           </div>
         </CardContent>
       </Card>
 
-      {/* Card 4: 학술 자료 */}
+      {/* Card 4: íì  ìë£ */}
       <Card>
         <CardHeader>
-          <CardTitle>학술 자료</CardTitle>
-          <CardDescription>논문이나 학술 자료를 입력하세요</CardDescription>
+          <CardTitle>íì  ìë£</CardTitle>
+          <CardDescription>ë¼ë¬¸ì´ë íì  ìë£ë¥¼ ìë ¥íì¸ì</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="thesisText">논문 텍스트 <span className="text-muted-foreground text-xs">(선택사항)</span></Label>
-            <Textarea id="thesisText" placeholder="의학 논문이나 학술 자료를 입력하세요..." value={thesisText} onChange={(e) => setThesisText(e.target.value)} rows={3} />
-            <p className="text-xs text-muted-foreground">의학 논문이나 학술 자료를 입력하면 더 전문적인 내용이 생성됩니다</p>
+            <Label htmlFor="thesisText">ë¼ë¬¸ íì¤í¸ <span className="text-muted-foreground text-xs">(ì íì¬í­)</span></Label>
+            <Textarea id="thesisText" placeholder="ìí ë¼ë¬¸ì´ë íì  ìë£ë¥¼ ìë ¥íì¸ì..." value={thesisText} onChange={(e) => setThesisText(e.target.value)} rows={3} />
+            <p className="text-xs text-muted-foreground">ìí ë¼ë¬¸ì´ë íì  ìë£ë¥¼ ìë ¥íë©´ ë ì ë¬¸ì ì¸ ë´ì©ì´ ìì±ë©ëë¤</p>
           </div>
           <Dialog open={pubmedOpen} onOpenChange={setPubmedOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" variant="outline" className="w-full gap-2">
-                <BookOpen className="h-4 w-4" /> 논문 검색
-              </Button>
+            <DialogTrigger className="inline-flex items-center justify-center gap-2 w-full rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 text-sm font-medium">
+                <BookOpen className="h-4 w-4" /> ë¼ë¬¸ ê²ì
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" /> PubMed 논문 검색
+                  <BookOpen className="h-5 w-5 text-primary" /> PubMed ë¼ë¬¸ ê²ì
                 </DialogTitle>
               </DialogHeader>
-              <PubMedPanel keywords={mainKeywords} onSelectPaper={(text) => { setThesisText((prev) => prev + (prev ? "\n\n" : "") + text); toast.success("논문이 학술 자료에 추가되었습니다"); }} />
+              <PubMedPanel keywords={mainKeywords} onSelectPaper={(text) => { setThesisText((prev) => prev + (prev ? "\n\n" : "") + text); toast.success("ë¼ë¬¸ì´ íì  ìë£ì ì¶ê°ëììµëë¤"); }} />
             </DialogContent>
           </Dialog>
         </CardContent>
       </Card>
 
-      {/* Card 5: 스타일 설정 */}
+      {/* Card 5: ì¤íì¼ ì¤ì  */}
       <Card>
         <CardHeader>
-          <CardTitle>스타일 설정</CardTitle>
-          <CardDescription>콘텐츠 스타일과 글자수를 설정하세요</CardDescription>
+          <CardTitle>ì¤íì¼ ì¤ì </CardTitle>
+          <CardDescription>ì½íì¸  ì¤íì¼ê³¼ ê¸ììë¥¼ ì¤ì íì¸ì</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label>콘텐츠 스타일</Label>
+            <Label>ì½íì¸  ì¤íì¼</Label>
             <RadioGroup value={contentStyle} onValueChange={setContentStyle} className="space-y-2">
               <label className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${contentStyle === "standard" ? "border-primary bg-primary/5" : "hover:border-primary/30"}`}>
                 <RadioGroupItem value="standard" id="style-standard" />
                 <div>
-                  <p className="text-sm font-medium">표준 (Standard)</p>
-                  <p className="text-xs text-muted-foreground">- 전문적이고 명확한 설명</p>
+                  <p className="text-sm font-medium">íì¤ (Standard)</p>
+                  <p className="text-xs text-muted-foreground">- ì ë¬¸ì ì´ê³  ëªíí ì¤ëª</p>
                 </div>
               </label>
               <label className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${contentStyle === "friendly" ? "border-primary bg-primary/5" : "hover:border-primary/30"}`}>
                 <RadioGroupItem value="friendly" id="style-friendly" />
                 <div>
-                  <p className="text-sm font-medium">친근함 (Friendly)</p>
-                  <p className="text-xs text-muted-foreground">- 따뜻하고 친근한 톤</p>
+                  <p className="text-sm font-medium">ì¹ê·¼í¨ (Friendly)</p>
+                  <p className="text-xs text-muted-foreground">- ë°ë»íê³  ì¹ê·¼í í¤</p>
                 </div>
               </label>
               <label className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${contentStyle === "casual" ? "border-primary bg-primary/5" : "hover:border-primary/30"}`}>
                 <RadioGroupItem value="casual" id="style-casual" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">캐주얼 (Casual)</p>
-                    <Badge variant="default" className="text-[10px] px-1.5 py-0">추천</Badge>
+                    <p className="text-sm font-medium">ìºì£¼ì¼ (Casual)</p>
+                    <Badge variant="default" className="text-[10px] px-1.5 py-0">ì¶ì²</Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">- 대화하듯 부드럽게 이어지는 문장 스타일</p>
+                  <p className="text-xs text-muted-foreground">- ëííë¯ ë¶ëë½ê² ì´ì´ì§ë ë¬¸ì¥ ì¤íì¼</p>
                 </div>
               </label>
             </RadioGroup>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>목표 글자수</Label>
-              <span className="text-sm font-semibold text-primary">{targetLength.toLocaleString()}자</span>
+              <Label>ëª©í ê¸ìì</Label>
+              <span className="text-sm font-semibold text-primary">{targetLength.toLocaleString()}ì</span>
             </div>
             <input type="range" min={500} max={3000} step={100} value={targetLength} onChange={(e) => setTargetLength(Number(e.target.value))} className="w-full accent-primary" />
             <div className="flex items-center justify-between">
               <Input type="number" value={targetLength} onChange={(e) => setTargetLength(Math.min(3000, Math.max(500, Number(e.target.value))))} className="w-24 h-8 text-sm" />
             </div>
-            <p className="text-xs text-muted-foreground">권장: 1500자 (±10% 범위 내에서 생성됩니다)</p>
+            <p className="text-xs text-muted-foreground">ê¶ì¥: 1500ì (Â±10% ë²ì ë´ìì ìì±ë©ëë¤)</p>
           </div>
         </CardContent>
       </Card>
 
       {/* Generate Button */}
       <Button type="submit" className="w-full" variant={generating ? "destructive" : "default"} size="lg">
-        {generating ? (<><Loader2 className="h-4 w-4 animate-spin mr-2" /> 생성 중단</>) : (<><Wand2 className="h-4 w-4 mr-2" /> 블로그 생성</>)}
+        {generating ? (<><Loader2 className="h-4 w-4 animate-spin mr-2" /> ìì± ì¤ë¨</>) : (<><Wand2 className="h-4 w-4 mr-2" /> ë¸ë¡ê·¸ ìì±</>)}
       </Button>
     </form>
   );
 
-  // ─── Result Content ───────────────────────────────────────
+  // âââ Result Content âââââââââââââââââââââââââââââââââââââââ
   const resultContent = (
     <div className="min-h-[600px] flex flex-col">
       {!generatedContent && !generating && (
         <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground text-center py-20">
           <Wand2 className="h-16 w-16 mb-6 opacity-20" />
-          <h3 className="text-lg font-semibold mb-2">블로그를 생성해보세요</h3>
-          <p className="text-sm max-w-sm">좌측 폼을 작성하고 &apos;블로그 생성&apos; 버튼을 클릭하면 AI가 전문적인 블로그 글을 작성해드립니다.</p>
+          <h3 className="text-lg font-semibold mb-2">ë¸ë¡ê·¸ë¥¼ ìì±í´ë³´ì¸ì</h3>
+          <p className="text-sm max-w-sm">ì¢ì¸¡ í¼ì ìì±íê³  &apos;ë¸ë¡ê·¸ ìì±&apos; ë²í¼ì í´ë¦­íë©´ AIê° ì ë¬¸ì ì¸ ë¸ë¡ê·¸ ê¸ì ìì±í´ëë¦½ëë¤.</p>
         </div>
       )}
       {generating && !generatedContent && (
         <div className="flex-1 flex flex-col items-center justify-center py-20">
           <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">블로그를 생성하고 있습니다...</p>
+          <p className="text-sm text-muted-foreground">ë¸ë¡ê·¸ë¥¼ ìì±íê³  ììµëë¤...</p>
         </div>
       )}
       {(generatedContent || generating) && (
         <div className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <Input placeholder="블로그 제목" value={title} onChange={(e) => setTitle(e.target.value)} className="text-lg font-bold border-none shadow-none focus-visible:ring-0 px-0 flex-1" />
-            {wordCount > 0 && <Badge variant="outline" className="text-xs">{wordCount.toLocaleString()}자</Badge>}
+            <Input placeholder="ë¸ë¡ê·¸ ì ëª©" value={title} onChange={(e) => setTitle(e.target.value)} className="text-lg font-bold border-none shadow-none focus-visible:ring-0 px-0 flex-1" />
+            {wordCount > 0 && <Badge variant="outline" className="text-xs">{wordCount.toLocaleString()}ì</Badge>}
           </div>
           <div className="prose prose-sm max-w-none whitespace-pre-wrap text-sm leading-relaxed">
             {generatedContent}
@@ -705,18 +701,18 @@ export default function EditorPage() {
           </div>
           {generatedContent && !generating && (
             <div className="flex flex-wrap gap-2 pt-4 border-t">
-              <Button variant="outline" size="sm" onClick={copyContent}><Copy className="h-4 w-4 mr-1" /> 복사</Button>
+              <Button variant="outline" size="sm" onClick={copyContent}><Copy className="h-4 w-4 mr-1" /> ë³µì¬</Button>
               <Button variant="outline" size="sm" onClick={downloadTxt}><FileText className="h-4 w-4 mr-1" /> TXT</Button>
               <Button variant="outline" size="sm" onClick={downloadMd}><FileText className="h-4 w-4 mr-1" /> MD</Button>
               <div className="ml-auto flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleSave("draft")} disabled={saving}><Save className="h-4 w-4 mr-1" /> 임시저장</Button>
-                <Button size="sm" onClick={() => handleSave("published")} disabled={saving}><Send className="h-4 w-4 mr-1" /> 발행</Button>
+                <Button variant="outline" size="sm" onClick={() => handleSave("draft")} disabled={saving}><Save className="h-4 w-4 mr-1" /> ììì ì¥</Button>
+                <Button size="sm" onClick={() => handleSave("published")} disabled={saving}><Send className="h-4 w-4 mr-1" /> ë°í</Button>
               </div>
             </div>
           )}
           {violations.length > 0 && (
             <div className="mt-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-              {violations.length}건의 컴플라이언스 위반 사항이 발견되었습니다. 수정을 권장합니다.
+              {violations.length}ê±´ì ì»´íë¼ì´ì¸ì¤ ìë° ì¬í­ì´ ë°ê²¬ëììµëë¤. ìì ì ê¶ì¥í©ëë¤.
             </div>
           )}
         </div>
@@ -728,9 +724,9 @@ export default function EditorPage() {
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
-          <PenLine className="h-6 w-6" /> AI 블로그 작성
+          <PenLine className="h-6 w-6" /> AI ë¸ë¡ê·¸ ìì±
         </h2>
-        <p className="text-muted-foreground mt-1">의료법을 준수하는 전문 블로그 콘텐츠를 AI로 자동 생성합니다.</p>
+        <p className="text-muted-foreground mt-1">ìë£ë²ì ì¤ìíë ì ë¬¸ ë¸ë¡ê·¸ ì½íì¸ ë¥¼ AIë¡ ìë ìì±í©ëë¤.</p>
       </div>
       <div className="hidden lg:grid lg:grid-cols-[minmax(400px,500px)_1fr] gap-6">
         <div className="overflow-y-auto max-h-[calc(100vh-160px)] pr-2">{formContent}</div>
@@ -741,8 +737,8 @@ export default function EditorPage() {
       <div className="lg:hidden">
         <Tabs value={mobileTab} onValueChange={setMobileTab}>
           <TabsList className="w-full grid grid-cols-2 mb-4">
-            <TabsTrigger value="input">입력</TabsTrigger>
-            <TabsTrigger value="result">결과</TabsTrigger>
+            <TabsTrigger value="input">ìë ¥</TabsTrigger>
+            <TabsTrigger value="result">ê²°ê³¼</TabsTrigger>
           </TabsList>
           <TabsContent value="input">{formContent}</TabsContent>
           <TabsContent value="result">
