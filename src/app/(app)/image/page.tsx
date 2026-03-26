@@ -98,7 +98,7 @@ export default function ImagePage() {
       setImages(prev => [data.image, ...prev]);
       setDailyUsed(prev => prev + 1);
       toast.success("이미지가 생성되었습니다!");
-      setPrompt(""); setReferenceFile(null); setReferencePreview(null);
+      setPrompt(""); setReferenceFile(null as File | null); setReferencePreview(null as string | null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "이미지 생성에 실패했습니다");
     } finally { setGenerating(false); }
@@ -179,7 +179,7 @@ export default function ImagePage() {
 
             <div>
               <p className="text-sm font-medium mb-2">비율</p>
-              <Select value={ratio} onValueChange={setRatio}>
+              <Select value={ratio} onValueChange={(v: string) => setRatio(v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {RATIO_OPTIONS.map((r) => (
