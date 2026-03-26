@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { DEFAULT_TEXT_MODEL } from "@/lib/ai/models";
+import { createServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -18,8 +19,10 @@ export async function POST(request: Request) {
       mainKeywords,
       subject,
       referenceText,
+      academicText,
       contentStyle,
       targetLength,
+      useWebSearch,
     } = await request.json();
 
     if (!mainKeywords || mainKeywords.length === 0) {
@@ -64,51 +67,46 @@ ${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
     let userPrompt = `키워드: ${mainKeywords.join(", ")}`;
     if (subject) userPrompt += `\n블로그 제목/주제: ${subject}`;
     if (referenceText) userPrompt += `\n\n참고 자료:\n${referenceText.slice(0, 5000)}`;
+    if (academicText) userPrompt += `\n\n논문/학술 자료:\n${academicText.slice(0, 3000)}`;
     userPrompt += `\n\n위 키워드를 중심으로 실제 병원 네이버 블로그에 올릴 수 있는 글을 작성해주세요.
 환자가 읽기 쉽고, 검색에 잘 걸리는 SEO 친화적인 글을 작성하세요.`;
 
-    // Use Gemini streaming API
+    const tools = useWebSearch ? [{ googleSearch: {} }] : undefined;
+    const requestBody: Record<string, unknown> = {
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ parts: [{ text: userPrompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
+    };
+    if (tools) requestBody.tools = tools;
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_TEXT_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: userPrompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 4096,
-          },
-        }),
-      }
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestBody) }
     );
 
     if (!response.ok) {
       const errText = await response.text();
       return new Response(JSON.stringify({ error: `Gemini API 오류: ${errText}` }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+        status: 500, headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Forward the SSE stream
     const encoder = new TextEncoder();
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
+    const userId = session.sub;
 
     const stream = new ReadableStream({
       async start(controller) {
         let buffer = "";
+        let fullContent = "";
         try {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
-
             for (const line of lines) {
               if (line.startsWith("data: ")) {
                 const data = line.slice(6).trim();
@@ -117,19 +115,25 @@ ${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
                   const parsed = JSON.parse(data);
                   const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                   if (text) {
+                    fullContent += text;
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
                   }
-                } catch {
-                  // Skip unparseable chunks
-                }
+                } catch { /* skip */ }
               }
             }
           }
+          if (fullContent.trim()) {
+            try {
+              const supabase = createServerClient();
+              const title = subject || mainKeywords[0] || "제목 없음";
+              await supabase.from("blogs").insert({
+                user_id: userId, title, content: fullContent, tags: mainKeywords, status: "draft",
+              });
+            } catch { /* 저장 실패해도 스트림에는 영향 없음 */ }
+          }
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } catch (err) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: String(err) })}\n\n`)
-          );
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: String(err) })}\n\n`));
         } finally {
           controller.close();
         }
@@ -137,17 +141,12 @@ ${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
     });
 
     return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
+      headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "블로그 생성에 실패했습니다";
     return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+      status: 500, headers: { "Content-Type": "application/json" },
     });
   }
 }
