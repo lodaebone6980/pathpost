@@ -217,7 +217,7 @@ export default function ImagePage() {
 
             <div>
               <p className="text-sm font-medium mb-2">비율</p>
-              <Select value={ratio} onValueChange={setRatio}>
+              <Select value={ratio} onValueChange={(v) => { if (v !== null && v !== undefined) setRatio(v); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {RATIO_OPTIONS.map((r) => (
