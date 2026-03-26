@@ -2,16 +2,18 @@ import { getSession } from "@/lib/auth/session";
 import { DEFAULT_TEXT_MODEL } from "@/lib/ai/models";
 import { createServerClient } from "@/lib/supabase/server";
 
-export async function POST(request: Request) {
-  const session = await getSession();
-  if (!session) {
-    return new Response(JSON.stringify({ error: "인증이 필요합니다" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+export const maxDuration = 60;
 
+export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return new Response(JSON.stringify({ error: "인증이 필요합니다" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const {
       hospitalName,
       doctorName,
@@ -34,10 +36,10 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.GOOGLE_AI_API_KEY;
     if (!apiKey || apiKey === "placeholder-add-your-key") {
-      return new Response(JSON.stringify({ error: "Gemini API 키가 설정되지 않았습니다" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Gemini API 키가 설정되지 않았습니다" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     const styleMap: Record<string, string> = {
@@ -51,25 +53,24 @@ export async function POST(request: Request) {
 
 작성 규칙:
 1. 한국어로 작성 (네이버 블로그 스타일)
-2. ${styleMap[contentStyle] || styleMap.standard}
-3. 약 ${targetLength || 1500}자 분량
+2. \${styleMap[contentStyle] || styleMap.standard}
+3. 약 \${targetLength || 1500}자 분량
 4. 의학적으로 정확한 정보만 포함
 5. 자연스러운 블로그 글 구조 (도입 → 시술/치료 설명 → 효과/장점 → 주의사항 → 마무리)
-6. 각 섹션에 ## 소제목 사용 (네이버 블로그에 어울리는 자연스러운 소제목)
+6. 각 섹션에 ## 소제목 사용
 7. 전문 용어는 괄호 안에 영문 표기
 8. 의료 광고법 준수 (최고, 최초, 보장, 완치 등 금지 표현 절대 사용 금지)
 9. 과장 없이 객관적이고 신뢰감 있게 작성
 10. "~입니다", "~됩니다" 등 존댓말 사용
-${hospitalName ? `\n병원명: ${hospitalName} (글 중간에 자연스럽게 1~2회 언급)` : ""}
-${doctorName ? `의사명: ${doctorName}` : ""}
-${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
+\${hospitalName ? "\n병원명: " + hospitalName + " (글 중간에 자연스럽게 1~2회 언급)" : ""}
+\${doctorName ? "의사명: " + doctorName : ""}
+\${personaFeatures ? "작성자 페르소나: " + personaFeatures : ""}`;
 
-    let userPrompt = `키워드: ${mainKeywords.join(", ")}`;
-    if (subject) userPrompt += `\n블로그 제목/주제: ${subject}`;
-    if (referenceText) userPrompt += `\n\n참고 자료:\n${referenceText.slice(0, 5000)}`;
-    if (academicText) userPrompt += `\n\n논문/학술 자료:\n${academicText.slice(0, 3000)}`;
-    userPrompt += `\n\n위 키워드를 중심으로 실제 병원 네이버 블로그에 올릴 수 있는 글을 작성해주세요.
-환자가 읽기 쉽고, 검색에 잘 걸리는 SEO 친화적인 글을 작성하세요.`;
+    let userPrompt = "키워드: " + mainKeywords.join(", ");
+    if (subject) userPrompt += "\n블로그 제목/주제: " + subject;
+    if (referenceText) userPrompt += "\n\n참고 자료:\n" + referenceText.slice(0, 5000);
+    if (academicText) userPrompt += "\n\n논문/학술 자료:\n" + academicText.slice(0, 3000);
+    userPrompt += "\n\n위 키워드를 중심으로 실제 병원 네이버 블로그에 올릴 수 있는 글을 작성해주세요.";
 
     const tools = useWebSearch ? [{ googleSearch: {} }] : undefined;
     const requestBody: Record<string, unknown> = {
@@ -79,16 +80,24 @@ ${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
     };
     if (tools) requestBody.tools = tools;
 
+    console.log("[generate-stream] Calling Gemini:", DEFAULT_TEXT_MODEL);
+
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_TEXT_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`,
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestBody) }
+      `https://generativelanguage.googleapis.com/v1beta/models/\${DEFAULT_TEXT_MODEL}:streamGenerateContent?alt=sse&key=\${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      }
     );
 
     if (!response.ok) {
       const errText = await response.text();
-      return new Response(JSON.stringify({ error: `Gemini API 오류: ${errText}` }), {
-        status: 500, headers: { "Content-Type": "application/json" },
-      });
+      console.error("[generate-stream] Gemini error:", response.status, errText.substring(0, 200));
+      return new Response(
+        JSON.stringify({ error: "Gemini API 오류: " + errText.substring(0, 500) }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     const encoder = new TextEncoder();
@@ -116,7 +125,7 @@ ${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
                   const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                   if (text) {
                     fullContent += text;
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+                    controller.enqueue(encoder.encode("data: " + JSON.stringify({ text }) + "\n\n"));
                   }
                 } catch { /* skip */ }
               }
@@ -129,11 +138,14 @@ ${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
               await supabase.from("blogs").insert({
                 user_id: userId, title, content: fullContent, tags: mainKeywords, status: "draft",
               });
-            } catch { /* 저장 실패해도 스트림에는 영향 없음 */ }
+            } catch (dbErr) {
+              console.error("[generate-stream] DB error:", dbErr);
+            }
           }
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        } catch (err) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: String(err) })}\n\n`));
+        } catch (streamErr) {
+          console.error("[generate-stream] Stream error:", streamErr);
+          controller.enqueue(encoder.encode("data: " + JSON.stringify({ error: String(streamErr) }) + "\n\n"));
         } finally {
           controller.close();
         }
@@ -141,12 +153,18 @@ ${personaFeatures ? `작성자 페르소나: ${personaFeatures}` : ""}`;
     });
 
     return new Response(stream, {
-      headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
     });
   } catch (err) {
+    console.error("[generate-stream] Unhandled error:", err);
     const message = err instanceof Error ? err.message : "블로그 생성에 실패했습니다";
     return new Response(JSON.stringify({ error: message }), {
-      status: 500, headers: { "Content-Type": "application/json" },
+      status: 500,
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
