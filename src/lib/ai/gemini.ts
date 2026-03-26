@@ -20,10 +20,18 @@ export async function generateText(
 
 export async function generateImage(
   prompt: string,
-  model: ImageModel = "gemini-3.1-flash-image-preview"
+  model: ImageModel = "gemini-3.1-flash-image-preview",
+  referenceImage?: { base64: string; mimeType: string }
 ): Promise<{ base64: string; mimeType: string }> {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not set");
+
+  type Part = { text: string } | { inlineData: { mimeType: string; data: string } };
+  const parts: Part[] = [];
+  if (referenceImage) {
+    parts.push({ inlineData: { mimeType: referenceImage.mimeType, data: referenceImage.base64 } });
+  }
+  parts.push({ text: `No text or watermarks. High quality, suitable for a medical blog post. ${prompt}` });
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -31,15 +39,7 @@ export async function generateImage(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: `Medical illustration style, clean and professional. Healthcare/medical context. No text or watermarks. High quality, suitable for a medical blog post. Subject: ${prompt}`,
-              },
-            ],
-          },
-        ],
+        contents: [{ parts }],
         generationConfig: {
           responseModalities: ["IMAGE", "TEXT"],
           responseMimeType: "image/png",
@@ -54,14 +54,12 @@ export async function generateImage(
   }
 
   const data = await response.json();
-  const parts = data.candidates?.[0]?.content?.parts;
+  const responseParts = data.candidates?.[0]?.content?.parts;
+  if (!responseParts) throw new Error("No image generated");
 
-  if (!parts) throw new Error("No image generated");
-
-  const imagePart = parts.find(
+  const imagePart = responseParts.find(
     (part: { inlineData?: { mimeType: string; data: string } }) => part.inlineData
   );
-
   if (!imagePart?.inlineData) throw new Error("No image data in response");
 
   return {
